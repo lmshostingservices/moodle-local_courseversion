@@ -188,7 +188,7 @@ function local_courseversion_check_and_block_edit() {
                       strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     
     if (strpos($script, '/lib/ajax/service.php') !== false) {
-        $info = $_REQUEST['info'] ?? '';
+        $info = optional_param('info', '', PARAM_ALPHANUMEXT);
         
         // 🔴 EXPLICITLY BLOCKED AJAX actions (structural changes ONLY)
         // Everything else is ALLOWED by default - this is the future-proof approach
@@ -356,7 +356,7 @@ function local_courseversion_log_blocked_edit_throttled($courseid, $lockinfo, $s
     global $SESSION;
     
     // Get the AJAX action if present for more granular throttling
-    $action = $_REQUEST['info'] ?? 'page';
+    $action = optional_param('info', 'page', PARAM_ALPHANUMEXT);
     
     // Create a unique key for this specific blocked action
     // Includes: session (implicit), script, action, and course
@@ -403,35 +403,35 @@ function local_courseversion_get_course_id_from_request($script) {
 
     if (!$isajaxservice) {
         // === PRIORITY 1: Direct course parameters (non-AJAX only) ===
-        if (!empty($_REQUEST['courseid'])) {
-            return (int)$_REQUEST['courseid'];
+        if (($v = optional_param('courseid', 0, PARAM_INT)) > 0) {
+            return $v;
         }
-        if (!empty($_REQUEST['course'])) {
-            return (int)$_REQUEST['course'];
+        if (($v = optional_param('course', 0, PARAM_INT)) > 0) {
+            return $v;
         }
 
         // Course edit page uses 'id' for course ID
-        if (!empty($_REQUEST['id']) && strpos($script, '/course/edit.php') !== false) {
-            return (int)$_REQUEST['id'];
+        if ((($reqid = optional_param('id', 0, PARAM_INT)) > 0) && strpos($script, '/course/edit.php') !== false) {
+            return $reqid;
         }
     }
     
     // === PRIORITY 2: Course module ID (ChatGPT fix #7) ===
     // cmid parameter is common across many pages
     $cmid = 0;
-    if (!empty($_REQUEST['cmid'])) {
-        $cmid = (int)$_REQUEST['cmid'];
-    } else if (!empty($_REQUEST['update'])) {
-        $cmid = (int)$_REQUEST['update'];
-    } else if (!empty($_REQUEST['delete'])) {
-        $cmid = (int)$_REQUEST['delete'];
-    } else if (!empty($_REQUEST['duplicate'])) {
-        $cmid = (int)$_REQUEST['duplicate'];
-    } else if (!empty($_REQUEST['hide'])) {
-        $cmid = (int)$_REQUEST['hide'];
-    } else if (!empty($_REQUEST['show'])) {
-        $cmid = (int)$_REQUEST['show'];
-    } else if (!empty($_REQUEST['id']) && strpos($script, '/course/mod.php') !== false) {
+    if (!empty(optional_param('cmid', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('cmid', 0, PARAM_INT);
+    } else if (!empty(optional_param('update', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('update', 0, PARAM_INT);
+    } else if (!empty(optional_param('delete', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('delete', 0, PARAM_INT);
+    } else if (!empty(optional_param('duplicate', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('duplicate', 0, PARAM_INT);
+    } else if (!empty(optional_param('hide', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('hide', 0, PARAM_INT);
+    } else if (!empty(optional_param('show', 0, PARAM_INT))) {
+        $cmid = (int)optional_param('show', 0, PARAM_INT);
+    } else if ((($reqid = optional_param('id', 0, PARAM_INT)) > 0) && strpos($script, '/course/mod.php') !== false) {
         // === BUG-CV-ADD-RESOURCE-CROSS-COURSE FIX (v1.5.3) ===
         // When 'add' is set in mod.php (teacher adding a NEW module via the activity
         // chooser), the 'id' parameter is NOT a course-module ID — it is a section
@@ -442,8 +442,8 @@ function local_courseversion_get_course_id_from_request($script) {
         // Course 2's view page even though they are working in Course 1 (unlocked).
         // Fix: only resolve 'id' as a cmid when 'add' is NOT set — i.e. for edit/move
         // operations on EXISTING modules, where 'id' genuinely is a cmid.
-        if (empty($_REQUEST['add'])) {
-            $cmid = (int)$_REQUEST['id'];
+        if (empty(optional_param('add', 0, PARAM_INT))) {
+            $cmid = $reqid;
         }
     }
     
@@ -460,8 +460,8 @@ function local_courseversion_get_course_id_from_request($script) {
     }
     
     // === PRIORITY 3: Forum discussion ID (ChatGPT fix #7) ===
-    if (!empty($_REQUEST['discussion']) || !empty($_REQUEST['d'])) {
-        $discussionid = (int)($_REQUEST['discussion'] ?? $_REQUEST['d']);
+    if (!empty(optional_param('discussion', 0, PARAM_INT)) || !empty(optional_param('d', 0, PARAM_INT))) {
+        $discussionid = (int)(optional_param('discussion', 0, PARAM_INT) ?? optional_param('d', 0, PARAM_INT));
         if ($discussionid) {
             $course = $DB->get_field('forum_discussions', 'course', ['id' => $discussionid], IGNORE_MISSING);
             if ($course) {
@@ -471,8 +471,8 @@ function local_courseversion_get_course_id_from_request($script) {
     }
     
     // === PRIORITY 4: Quiz attempt ID (ChatGPT fix #7) ===
-    if (!empty($_REQUEST['attemptid']) || !empty($_REQUEST['attempt'])) {
-        $attemptid = (int)($_REQUEST['attemptid'] ?? $_REQUEST['attempt']);
+    if (!empty(optional_param('attemptid', 0, PARAM_INT)) || !empty(optional_param('attempt', 0, PARAM_INT))) {
+        $attemptid = (int)(optional_param('attemptid', 0, PARAM_INT) ?? optional_param('attempt', 0, PARAM_INT));
         if ($attemptid) {
             $course = $DB->get_field_sql(
                 "SELECT q.course FROM {quiz_attempts} qa
@@ -488,8 +488,8 @@ function local_courseversion_get_course_id_from_request($script) {
     }
     
     // === PRIORITY 5: Section ID ===
-    if (!empty($_REQUEST['id']) && strpos($script, '/course/editsection.php') !== false) {
-        $sectionid = (int)$_REQUEST['id'];
+    if ((($reqid = optional_param('id', 0, PARAM_INT)) > 0) && strpos($script, '/course/editsection.php') !== false) {
+        $sectionid = $reqid;
         $section = $DB->get_record('course_sections', ['id' => $sectionid], 'course', IGNORE_MISSING);
         if ($section) {
             return $section->course;
@@ -497,8 +497,8 @@ function local_courseversion_get_course_id_from_request($script) {
     }
     
     // Move activity
-    if (!empty($_REQUEST['moveto']) || !empty($_REQUEST['move'])) {
-        $cmid = (int)($_REQUEST['id'] ?? 0);
+    if (!empty(optional_param('moveto', 0, PARAM_INT)) || !empty(optional_param('move', 0, PARAM_INT))) {
+        $cmid = (int)(optional_param('id', 0, PARAM_INT) ?? 0);
         if ($cmid) {
             $cm = $DB->get_record('course_modules', ['id' => $cmid], 'course', IGNORE_MISSING);
             if ($cm) {
@@ -509,24 +509,24 @@ function local_courseversion_get_course_id_from_request($script) {
     
     // REST API calls
     if (strpos($script, '/course/rest.php') !== false) {
-        if (!empty($_REQUEST['id'])) {
-            return (int)$_REQUEST['id'];
+        if (!empty(optional_param('id', 0, PARAM_INT))) {
+            return $reqid;
         }
     }
     
     // Backup/restore
-    if (strpos($script, '/backup/') !== false && !empty($_REQUEST['id'])) {
-        return (int)$_REQUEST['id'];
+    if (strpos($script, '/backup/') !== false && !empty(optional_param('id', 0, PARAM_INT))) {
+        return $reqid;
     }
     
     // Course reset
-    if (strpos($script, '/course/reset.php') !== false && !empty($_REQUEST['id'])) {
-        return (int)$_REQUEST['id'];
+    if (strpos($script, '/course/reset.php') !== false && !empty(optional_param('id', 0, PARAM_INT))) {
+        return $reqid;
     }
     
     // DND upload
-    if (strpos($script, '/course/dndupload.php') !== false && !empty($_REQUEST['course'])) {
-        return (int)$_REQUEST['course'];
+    if (strpos($script, '/course/dndupload.php') !== false && !empty(optional_param('course', 0, PARAM_INT))) {
+        return (int)optional_param('course', 0, PARAM_INT);
     }
     
     // === PRIORITY 6: AJAX service calls - parse JSON body ===
@@ -816,7 +816,7 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
         </style>';
         
         $html .= '<script>
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", function () {
                 // Disable editing mode toggle
                 var editBtn = document.querySelector(".editmode-switch-form input[type=submit]");
                 if (editBtn) {
@@ -825,17 +825,17 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
                 }
                 
                 // Disable all action dropdowns
-                document.querySelectorAll(".activity-actions, .section-actions").forEach(function(el) {
+                document.querySelectorAll(".activity-actions, .section-actions").forEach(function (el) {
                     el.style.display = "none";
                 });
                 
                 // Intercept form submissions
-                document.querySelectorAll("form").forEach(function(form) {
+                document.querySelectorAll("form").forEach(function (form) {
                     var action = form.getAttribute("action") || "";
                     if (action.includes("/course/mod.php") || 
                         action.includes("/course/modedit.php") ||
                         action.includes("/course/editsection.php")) {
-                        form.addEventListener("submit", function(e) {
+                        form.addEventListener("submit", function (e) {
                             e.preventDefault();
                             alert("This course is locked (Version ' . $lockinfo->version . '). Editing is disabled.");
                             return false;
@@ -937,7 +937,7 @@ function local_courseversion_extend_navigation_course(navigation_node $navigatio
         cvStyle.textContent = ' . json_encode($css) . ';
         document.head.appendChild(cvStyle);
         // Hide only the pencil icon anchors, do NOT remove them
-        document.querySelectorAll("a.quickeditlink, .quickediticon, a[data-inplaceeditablelink]").forEach(function(el) {
+        document.querySelectorAll("a.quickeditlink, .quickediticon, a[data-inplaceeditablelink]").forEach(function (el) {
             el.style.display = "none";
         });';
     

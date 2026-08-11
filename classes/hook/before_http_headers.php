@@ -24,7 +24,6 @@ namespace local_courseversion\hook;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class before_http_headers {
-
     /**
      * Callback to block course editing if version is locked.
      * Uses shared function from lib.php for consistency.

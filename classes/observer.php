@@ -32,7 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  * Event observer class.
  */
 class observer {
-
     /**
      * Check if a course is locked before allowing updates.
      *

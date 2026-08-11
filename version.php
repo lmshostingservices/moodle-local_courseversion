@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_courseversion';
-$plugin->version   = 2026072300212;
+$plugin->version   = 2026072300215;
 $plugin->requires  = 2022041900;   // Moodle 4.0+
 $plugin->supported = [400, 500];   // Moodle 4.0 to 5.x supported
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.5.9'; // HOOK-MIGRATION: Migrated local_courseversion_after_config() legacy callback to Moodle 4.3+ hook system (core\hook\after_config). Added db/hooks.php entry and classes/hook/after_config.php. Legacy lib.php function now returns early on Moodle 4.3+ to prevent double-execution.
+$plugin->release   = '1.5.10'; // HOOK-MIGRATION: Migrated local_courseversion_after_config() legacy callback to Moodle 4.3+ hook system (core\hook\after_config). Added db/hooks.php entry and classes/hook/after_config.php. Legacy lib.php function now returns early on Moodle 4.3+ to prevent double-execution.

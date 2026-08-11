@@ -36,7 +36,7 @@ function xmldb_local_courseversion_upgrade($oldversion) {
     }
 
     // v1.5.3: BUG FIX — course ID resolver in local_courseversion_get_course_id_from_request()
-    // was treating $_REQUEST['id'] as a course-module ID (CMID) for any /course/mod.php request,
+    // was treating REQUEST[id] as a course-module ID (CMID) for any /course/mod.php request,
     // including requests where 'add' is also set (teacher adding a new resource/activity).
     // When 'add' is set, 'id' is NOT a CMID — it is a section reference or beforemod pointer.
     // If that value coincidentally matched a CMID belonging to a module in a LOCKED course,

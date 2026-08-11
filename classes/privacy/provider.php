@@ -36,7 +36,6 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
-
     public static function get_metadata(collection $collection): collection {
         $collection->add_database_table(
             'local_cv_audit_log',

@@ -27,7 +27,6 @@ namespace local_courseversion\hook;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class after_config {
-
     /**
      * Callback to block course editing if version is locked.
      * Fires early in the Moodle bootstrap (after config is loaded).
