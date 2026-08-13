@@ -17,22 +17,22 @@
 /**
  * Upgrade steps for local_courseversion.
  *
+ * Baseline-reset to 10-digit version 2026072300.
+ * Historical upgrade steps removed; full schema is provided by db/install.xml.
+ * Future upgrade steps will be appended after this baseline.
+ *
  * @package    local_courseversion
- * @copyright  2026 LMS-Labs
- * @license    http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
+ * @copyright  2026 Essay Grader AI
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Execute local_courseversion upgrade from the given old version.
- *
- * @param int $oldversion
- * @return bool
- */
 function xmldb_local_courseversion_upgrade($oldversion) {
+
     if ($oldversion < 2026072300) {
         upgrade_plugin_savepoint(true, 2026072300, 'local', 'courseversion');
     }
+
     return true;
 }
