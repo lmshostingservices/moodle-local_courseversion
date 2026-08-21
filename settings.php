@@ -29,7 +29,7 @@ if ($hassiteconfig) {
     if (class_exists('\local_courseversion\unlock_verifier')) {
         if (!\local_courseversion\unlock_verifier::is_unlocked()) {
             // Only show warning when user is actually viewing this plugin's settings page
-            $currentsection = optional_param('section', '', PARAM_RAW);
+            $currentsection = optional_param('section', '', PARAM_ALPHANUMEXT);
             if ($currentsection === 'local_courseversion') {
                 \core\notification::warning(get_string('unlock_required', 'local_courseversion'));
             }
