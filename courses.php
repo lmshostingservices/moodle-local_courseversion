@@ -75,9 +75,9 @@ echo $OUTPUT->header();
     </div>
 
     <div class="cv-tabs">
-        <a href="<?php echo new moodle_url('/local/courseversion/index.php'); ?>" class="cv-tab"><?php echo get_string('dashboard', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/courses.php'); ?>" class="cv-tab active"><?php echo get_string('managecourses', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/audit.php'); ?>" class="cv-tab"><?php echo get_string('auditlog', 'local_courseversion'); ?></a>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/index.php'), get_string('dashboard', 'local_courseversion'), ['class' => 'cv-tab']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/courses.php'), get_string('managecourses', 'local_courseversion'), ['class' => 'cv-tab active']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/audit.php'), get_string('auditlog', 'local_courseversion'), ['class' => 'cv-tab']); ?>
     </div>
 
     <div class="cv-card">
@@ -88,7 +88,7 @@ echo $OUTPUT->header();
             </svg>
             <h3>No courses yet</h3>
             <p>Create your first course to start version control</p>
-            <a href="<?php echo new moodle_url('/local/courseversion/edit_course.php'); ?>" class="cv-btn cv-btn-primary"><?php echo get_string('addcourse', 'local_courseversion'); ?></a>
+            <?php echo html_writer::link(new moodle_url('/local/courseversion/edit_course.php'), get_string('addcourse', 'local_courseversion'), ['class' => 'cv-btn cv-btn-primary']); ?>
         </div>
         <?php else: ?>
         <div class="cv-table-container">

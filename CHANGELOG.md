@@ -2,7 +2,7 @@
 
 All notable changes to this plugin will be documented in this file.
 
-## [1.5.13] - 2026-09-25
+## [1.5.14] - 2026-09-25
 
 ### Fixed (BUG-CV-HOOK-LIB-NOT-LOADED)
 
@@ -25,7 +25,21 @@ plugin or core upgrade, `lib.php` was never loaded and the callback fatalled.
 
 - `README.md` rewritten: requirements, installation, configuration, capabilities,
   external service disclosure, privacy and support.
-- 1.5.12 was not released; its package was superseded before promotion.
+- Privacy provider now works: it reports the contexts and users that hold audit
+  log data and exports a user's audit entries (previously all stubs). Missing
+  `privacy:metadata:*` strings added, and the lms-labs.com licence check is
+  declared as an external location. Audit entries are still kept on deletion
+  requests, as compliance records.
+- Page templates (`archive.php`, `audit.php`, `courses.php`, `edit_version.php`,
+  `index.php`, `override.php`, `release.php`, `versions.php`): lines holding
+  several `<?php ?>` statements merged into a single statement per line. Output
+  HTML is unchanged, apart from escaping `version_status` in the index badge.
+- Multi-line function calls reformatted so the opening parenthesis ends the line
+  (`archive.php`, `classes/observer.php`, `edit_course.php`, `edit_version.php`,
+  `lib.php`, `override.php`, `release.php`).
+- Lang: `tasversion` changed to sentence case ("TAS document version").
+- Comments: first letter capitalised where a comment block started lowercase.
+- 1.5.12 and 1.5.13 were not released; their packages were superseded before promotion.
 
 ### Known issue (not changed in this release)
 

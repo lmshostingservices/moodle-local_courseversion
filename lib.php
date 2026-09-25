@@ -49,7 +49,7 @@ function local_courseversion_after_config() {
 /**
  * Shared logic to check and block course editing.
  * Called by both legacy callback and new hook system.
- * 
+ *
  * DESIGN PRINCIPLES (ChatGPT audit fixes v1.3.6):
  * - Only block STRUCTURAL changes (add/edit/delete activities, sections, settings)
  * - ALWAYS allow learning interactions (submissions, forums, quizzes, completion, grading)
@@ -73,7 +73,7 @@ function local_courseversion_check_and_block_edit() {
     // stream on many PHP/FPM configurations — a second file_get_contents() call
     // returns an empty string, silently killing course-ID resolution and causing
     // the $PAGE->context fallback to fire with a potentially wrong course context.
-    $GLOBALS['local_cv_raw_body'] = null; // reset each request
+    $GLOBALS['local_cv_raw_body'] = null; // Reset each request
     if (strpos($script, '/lib/ajax/') !== false) {
         $GLOBALS['local_cv_raw_body'] = file_get_contents('php://input');
     }
@@ -85,46 +85,46 @@ function local_courseversion_check_and_block_edit() {
         '/grade/',                    // All grading pages
         '/grade/report/',             // Grade reports
         '/grade/edit/',               // Grade editing
-        
+
         // Assignment (ChatGPT fix #3)
         '/mod/assign/view.php',       // Assignment viewing/grading
         '/mod/assign/grader.php',     // Assignment grader
         '/mod/assign/submission.php', // Assignment submissions
-        
+
         // Quiz
         '/mod/quiz/review.php',       // Quiz review
         '/mod/quiz/attempt.php',      // Quiz attempts
         '/mod/quiz/summary.php',      // Quiz summary
         '/mod/quiz/startattempt.php', // Start quiz attempt
-        
+
         // Forum (ChatGPT fix #2)
         '/mod/forum/post.php',        // Forum posting
         '/mod/forum/discuss.php',     // Forum discussions
         '/mod/forum/view.php',        // Forum view
-        
+
         // Completion (ChatGPT fix #4)
         '/course/completion.php',     // Completion management
         '/course/togglecompletion.php', // Toggle completion
-        
+
         // User management
         '/user/',                     // User pages
         '/enrol/',                    // Enrollment pages
         '/group/',                    // Group pages
         '/cohort/',                   // Cohort pages
         '/admin/roles/',              // Role assignment
-        
+
         // Reports & communication
         '/report/',                   // Reports
         '/calendar/',                 // Calendar
         '/message/',                  // Messaging
         '/badges/',                   // Badges
         '/comment/',                  // Comments
-        
+
         // Web services for Moodle Mobile (ChatGPT fix #5)
         '/webservice/',               // All web service calls
         '/webservice/rest/server.php', // REST API
         '/webservice/xmlrpc/server.php', // XMLRPC API
-        
+
         // Other activity viewing
         '/mod/resource/',             // Resource viewing
         '/mod/page/',                 // Page viewing
@@ -143,7 +143,7 @@ function local_courseversion_check_and_block_edit() {
         '/mod/feedback/',             // Feedback responses
         '/mod/survey/',               // Survey responses
     ];
-    
+
     foreach ($allowedscripts as $allowed) {
         if (strpos($script, $allowed) !== false) {
             return; // Always allow these pages
@@ -180,16 +180,16 @@ function local_courseversion_check_and_block_edit() {
     // ========== AJAX FILTER (v1.3.7 - REVERSED LOGIC) ==========
     // DESIGN: Allow everything by default, block only explicitly destructive actions
     // This is future-proof as new Moodle/plugin actions are automatically allowed
-    
+
     // Use AJAX_SCRIPT constant for reliable detection
-    $isajaxrequest = (defined('AJAX_SCRIPT') && AJAX_SCRIPT) || 
+    $isajaxrequest = (defined('AJAX_SCRIPT') && AJAX_SCRIPT) ||
                      strpos($script, '/lib/ajax/') !== false ||
-                     (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                     (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                       strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-    
+
     if (strpos($script, '/lib/ajax/service.php') !== false) {
         $info = optional_param('info', '', PARAM_ALPHANUMEXT);
-        
+
         // 🔴 EXPLICITLY BLOCKED AJAX actions (structural changes ONLY)
         // Everything else is ALLOWED by default - this is the future-proof approach
         $blockedajaxactions = [
@@ -199,13 +199,13 @@ function local_courseversion_check_and_block_edit() {
             'core_course_set_visibility',
             'core_course_update_module',
             'core_course_duplicate_module',
-            
+
             // Section/activity movement (v1.3.7 fix #3 - only block destructive actions)
             'core_courseformat_move_section',
             'core_courseformat_move_cm',
             'core_courseformat_update_course',
         ];
-        
+
         // Check if action is in the blocked list
         $isblocked = false;
         foreach ($blockedajaxactions as $action) {
@@ -214,14 +214,14 @@ function local_courseversion_check_and_block_edit() {
                 break;
             }
         }
-        
+
         // Special handling for core_update_inplace_editable (v1.3.7 fix #1)
         // This is used for BOTH structural edits AND non-structural edits (grading, comments)
         // We must inspect the component/itemtype to decide
         if (strpos($info, 'core_update_inplace_editable') !== false) {
             $isblocked = local_courseversion_is_structural_inplace_edit();
         }
-        
+
         // If not blocked, allow everything (reversed logic)
         if (!$isblocked) {
             return;
@@ -283,13 +283,13 @@ function local_courseversion_check_and_block_edit() {
 
 /**
  * Check if an inplace edit targets structural course elements (v1.3.7 fix #1).
- * 
- * core_update_inplace_editable is used for both:
+ *
+ * The core_update_inplace_editable web service is used for both:
  * - Structural edits: course name, section name, activity name (BLOCK)
  * - Non-structural edits: grade feedback, comments, inline grading (ALLOW)
- * 
+ *
  * We inspect the component and itemtype to determine which.
- * 
+ *
  * @return bool True if this is a structural edit that should be blocked
  */
 function local_courseversion_is_structural_inplace_edit() {
@@ -302,12 +302,12 @@ function local_courseversion_is_structural_inplace_edit() {
     if (!$rawbody) {
         return false; // Can't determine, allow by default
     }
-    
+
     $data = json_decode($rawbody, true);
     if (!is_array($data)) {
         return false;
     }
-    
+
     // Structural components/itemtypes that should be blocked
     $structuraltargets = [
         // Course-level edits
@@ -319,32 +319,32 @@ function local_courseversion_is_structural_inplace_edit() {
         // Module name edits
         'mod_' => ['name'], // Any module name edit
     ];
-    
+
     foreach ($data as $call) {
         if (!isset($call['methodname']) || $call['methodname'] !== 'core_update_inplace_editable') {
             continue;
         }
-        
+
         $component = $call['args']['component'] ?? '';
         $itemtype = $call['args']['itemtype'] ?? '';
-        
+
         // Check if this is a structural target
         foreach ($structuraltargets as $targetcomponent => $itemtypes) {
             // Exact match or prefix match for mod_
-            $matches = ($component === $targetcomponent) || 
+            $matches = ($component === $targetcomponent) ||
                        ($targetcomponent === 'mod_' && strpos($component, 'mod_') === 0);
-            
+
             if ($matches && in_array($itemtype, $itemtypes, true)) {
                 return true; // This is a structural edit, block it
             }
         }
-        
+
         // Specific checks for section name edits
         if ($itemtype === 'sectionname' || $itemtype === 'activityname') {
             return true; // Block section/activity name edits
         }
     }
-    
+
     return false; // Not a structural edit, allow it
 }
 
@@ -354,29 +354,29 @@ function local_courseversion_is_structural_inplace_edit() {
  */
 function local_courseversion_log_blocked_edit_throttled($courseid, $lockinfo, $script) {
     global $SESSION;
-    
+
     // Get the AJAX action if present for more granular throttling
     $action = optional_param('info', 'page', PARAM_ALPHANUMEXT);
-    
+
     // Create a unique key for this specific blocked action
     // Includes: session (implicit), script, action, and course
     $key = 'cv_logged_' . md5($script . '_' . $action . '_' . $courseid);
-    
+
     // Check if we've already logged this in this session
     if (!empty($SESSION->$key)) {
         return; // Already logged this specific block in this session
     }
-    
+
     // Mark as logged for this session
     $SESSION->$key = time();
-    
+
     // Now do the actual logging
     local_courseversion_log_blocked_edit($courseid, $lockinfo, $script);
 }
 
 /**
  * Get course ID from request parameters (ChatGPT fix #7 - comprehensive detection).
- * 
+ *
  * Handles all common request patterns:
  * - Direct course/courseid parameters
  * - Course module ID (cmid, update, delete, duplicate, hide, show)
@@ -415,7 +415,7 @@ function local_courseversion_get_course_id_from_request($script) {
             return $reqid;
         }
     }
-    
+
     // === PRIORITY 2: Course module ID (ChatGPT fix #7) ===
     // cmid parameter is common across many pages
     $cmid = 0;
@@ -453,7 +453,7 @@ function local_courseversion_get_course_id_from_request($script) {
         }
         $cmid = $reqid;
     }
-    
+
     if ($cmid) {
         $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING);
         if ($cm) {
@@ -465,7 +465,7 @@ function local_courseversion_get_course_id_from_request($script) {
             return $cmrecord->course;
         }
     }
-    
+
     // === PRIORITY 3: Forum discussion ID (ChatGPT fix #7) ===
     if (!empty(optional_param('discussion', 0, PARAM_INT)) || !empty(optional_param('d', 0, PARAM_INT))) {
         $discussionid = (int)(optional_param('discussion', 0, PARAM_INT) ?? optional_param('d', 0, PARAM_INT));
@@ -476,7 +476,7 @@ function local_courseversion_get_course_id_from_request($script) {
             }
         }
     }
-    
+
     // === PRIORITY 4: Quiz attempt ID (ChatGPT fix #7) ===
     if (!empty(optional_param('attemptid', 0, PARAM_INT)) || !empty(optional_param('attempt', 0, PARAM_INT))) {
         $attemptid = (int)(optional_param('attemptid', 0, PARAM_INT) ?? optional_param('attempt', 0, PARAM_INT));
@@ -493,7 +493,7 @@ function local_courseversion_get_course_id_from_request($script) {
             }
         }
     }
-    
+
     // === PRIORITY 5: Section ID ===
     if ((($reqid = optional_param('id', 0, PARAM_INT)) > 0) && strpos($script, '/course/editsection.php') !== false) {
         $sectionid = $reqid;
@@ -502,7 +502,7 @@ function local_courseversion_get_course_id_from_request($script) {
             return $section->course;
         }
     }
-    
+
     // Move activity
     if (!empty(optional_param('moveto', 0, PARAM_INT)) || !empty(optional_param('move', 0, PARAM_INT))) {
         $cmid = (int)(optional_param('id', 0, PARAM_INT) ?? 0);
@@ -513,29 +513,29 @@ function local_courseversion_get_course_id_from_request($script) {
             }
         }
     }
-    
+
     // REST API calls
     if (strpos($script, '/course/rest.php') !== false) {
         if (!empty(optional_param('id', 0, PARAM_INT))) {
             return $reqid;
         }
     }
-    
+
     // Backup/restore
     if (strpos($script, '/backup/') !== false && !empty(optional_param('id', 0, PARAM_INT))) {
         return $reqid;
     }
-    
+
     // Course reset
     if (strpos($script, '/course/reset.php') !== false && !empty(optional_param('id', 0, PARAM_INT))) {
         return $reqid;
     }
-    
+
     // DND upload
     if (strpos($script, '/course/dndupload.php') !== false && !empty(optional_param('course', 0, PARAM_INT))) {
         return (int)optional_param('course', 0, PARAM_INT);
     }
-    
+
     // === PRIORITY 6: AJAX service calls - parse JSON body ===
     // BUG-CV-DOUBLE-READ FIX: Use the pre-buffered body from $GLOBALS['local_cv_raw_body']
     // instead of re-calling file_get_contents('php://input'), which returns empty string
@@ -648,11 +648,11 @@ function local_courseversion_get_lock_info($moodlecourseid) {
              ORDER BY id DESC LIMIT 1",
             [$moodlecourseid]
         );
-        
+
         if (empty($cvcourses)) {
             return null;
         }
-        
+
         $cvcourse = reset($cvcourses);
 
         // Use get_records with LIMIT 1 to avoid error if multiple active versions exist
@@ -713,22 +713,22 @@ function local_courseversion_log_blocked_edit($courseid, $lockinfo, $script) {
  */
 function local_courseversion_before_standard_top_of_body_html_generation() {
     global $PAGE, $DB, $OUTPUT;
-    
+
     try {
         if (!$PAGE->context) {
             return '';
         }
-        
+
         $coursecontext = $PAGE->context->get_course_context(false);
         if (!$coursecontext) {
             return '';
         }
-        
+
         $courseid = $coursecontext->instanceid;
         if (!$courseid || (defined('SITEID') && $courseid == SITEID)) {
             return '';
         }
-        
+
         // IMPORTANT: Do NOT apply lock CSS on enrollment/participants/user pages
         // These pages need full functionality for role assignment
         $script = $_SERVER['SCRIPT_NAME'] ?? '';
@@ -745,17 +745,17 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
                 return '';
             }
         }
-        
+
         $lockinfo = local_courseversion_get_lock_info($courseid);
         if (!$lockinfo) {
             return '';
         }
-        
+
         // Check override
         if (has_capability('local/courseversion:override', $coursecontext, null, false)) {
             return '';
         }
-        
+
         // Inject CSS to hide editing controls and JS to prevent actions
         // ONLY for course content editing - not enrollment/role management
         $html = '<style id="cv-lock-styles">
@@ -821,7 +821,7 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
                 margin-bottom: 10px;
             }
         </style>';
-        
+
         $html .= '<script>
             document.addEventListener("DOMContentLoaded", function () {
                 // Disable editing mode toggle
@@ -851,7 +851,7 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
                 });
             });
         </script>';
-        
+
         return $html;
     } catch (Exception $e) {
         return '';
@@ -863,7 +863,7 @@ function local_courseversion_before_standard_top_of_body_html_generation() {
  */
 function local_courseversion_extend_navigation(global_navigation $navigation) {
     global $PAGE;
-    
+
     if (has_capability('local/courseversion:manage', context_system::instance()) ||
         has_capability('local/courseversion:create', context_system::instance())) {
         // Add to navigation if user has access
@@ -876,7 +876,7 @@ function local_courseversion_extend_navigation(global_navigation $navigation) {
  */
 function local_courseversion_extend_navigation_course(navigation_node $navigation, stdClass $course, context_course $context) {
     global $DB, $PAGE;
-    
+
     // IMPORTANT: Do NOT apply lock CSS on enrollment/participants/user pages
     // These pages need full functionality for role assignment
     $script = $_SERVER['SCRIPT_NAME'] ?? '';
@@ -893,17 +893,17 @@ function local_courseversion_extend_navigation_course(navigation_node $navigatio
             return;
         }
     }
-    
+
     $lockinfo = local_courseversion_get_lock_info($course->id);
     if (!$lockinfo) {
         return;
     }
-    
+
     // Check override capability
     if (has_capability('local/courseversion:override', $context, null, false)) {
         return;
     }
-    
+
     // Inject CSS to hide ONLY the pencil edit icons for COURSE CONTENT, not enrollment/role editing
     $css = '
         /* Hide only the pencil icon link - COURSE CONTENT ONLY */
@@ -935,9 +935,9 @@ function local_courseversion_extend_navigation_course(navigation_node $navigatio
             display: none !important;
         }
     ';
-    
+
     $PAGE->requires->css('/local/courseversion/styles.css');
-    
+
     // Use JavaScript to inject the CSS and hide pencil icons only
     $jscode = 'var cvStyle = document.createElement("style");
         cvStyle.id = "cv-lock-styles";
@@ -947,7 +947,7 @@ function local_courseversion_extend_navigation_course(navigation_node $navigatio
         document.querySelectorAll("a.quickeditlink, .quickediticon, a[data-inplaceeditablelink]").forEach(function (el) {
             el.style.display = "none";
         });';
-    
+
     $PAGE->requires->js_init_code($jscode, true);
 }
 
@@ -956,7 +956,7 @@ function local_courseversion_extend_navigation_course(navigation_node $navigatio
  */
 function local_courseversion_extend_settings_navigation(settings_navigation $settingsnav, context $context) {
     global $PAGE;
-    
+
     if ($settingsnav->get('siteadministration')) {
         $node = $settingsnav->get('siteadministration');
         if ($node && has_capability('local/courseversion:manage', context_system::instance())) {
@@ -990,7 +990,7 @@ function local_courseversion_get_status_class($status) {
  */
 function local_courseversion_log_action($action, $versionid = null, $courseid = null, $reason = '', $details = []) {
     global $DB, $USER;
-    
+
     $record = new stdClass();
     $record->action = $action;
     $record->versionid = $versionid;
@@ -1000,7 +1000,7 @@ function local_courseversion_log_action($action, $versionid = null, $courseid = 
     $record->details = json_encode($details);
     $record->ipaddress = getremoteaddr();
     $record->timecreated = time();
-    
+
     return $DB->insert_record('local_cv_audit_log', $record);
 }
 
@@ -1009,12 +1009,12 @@ function local_courseversion_log_action($action, $versionid = null, $courseid = 
  */
 function local_courseversion_check_auto_lock($versionid) {
     global $DB;
-    
+
     $state = $DB->get_record('local_cv_assessment_state', ['versionid' => $versionid]);
     if (!$state) {
         return false;
     }
-    
+
     return ($state->has_enrolments || $state->has_attempts);
 }
 
@@ -1023,19 +1023,19 @@ function local_courseversion_check_auto_lock($versionid) {
  */
 function local_courseversion_sync_assessment_state($versionid) {
     global $DB;
-    
+
     $version = $DB->get_record('local_cv_versions', ['id' => $versionid]);
     if (!$version) {
         return false;
     }
-    
+
     $course = $DB->get_record('local_cv_courses', ['id' => $version->courseid]);
     if (!$course || !$course->moodle_course_id) {
         return false;
     }
-    
+
     $moodlecourseid = $course->moodle_course_id;
-    
+
     // Count enrolments
     $enrolcount = $DB->count_records_sql(
         "SELECT COUNT(DISTINCT ue.userid) 
@@ -1044,7 +1044,7 @@ function local_courseversion_sync_assessment_state($versionid) {
          WHERE e.courseid = ? AND ue.status = 0",
         [$moodlecourseid]
     );
-    
+
     // Count quiz attempts
     $attemptcount = $DB->count_records_sql(
         "SELECT COUNT(*) 
@@ -1053,7 +1053,7 @@ function local_courseversion_sync_assessment_state($versionid) {
          WHERE q.course = ?",
         [$moodlecourseid]
     );
-    
+
     // Get last attempt date
     $lastattempt = $DB->get_field_sql(
         "SELECT MAX(qa.timefinish) 
@@ -1062,10 +1062,10 @@ function local_courseversion_sync_assessment_state($versionid) {
          WHERE q.course = ?",
         [$moodlecourseid]
     );
-    
+
     $now = time();
     $state = $DB->get_record('local_cv_assessment_state', ['versionid' => $versionid]);
-    
+
     if ($state) {
         $state->has_enrolments = $enrolcount > 0 ? 1 : 0;
         $state->has_attempts = $attemptcount > 0 ? 1 : 0;
@@ -1088,20 +1088,27 @@ function local_courseversion_sync_assessment_state($versionid) {
         $state->timemodified = $now;
         $DB->insert_record('local_cv_assessment_state', $state);
     }
-    
+
     // Auto-lock if has enrolments or attempts
     if (($enrolcount > 0 || $attemptcount > 0) && !$version->locked) {
         $version->locked = 1;
-        $version->lock_reason = get_string('autolockedmessage', 'local_courseversion', 
-            (object)['enrolments' => $enrolcount, 'attempts' => $attemptcount]);
+        $version->lock_reason = get_string(
+            'autolockedmessage',
+            'local_courseversion',
+            (object)['enrolments' => $enrolcount, 'attempts' => $attemptcount]
+        );
         $version->timemodified = $now;
         $DB->update_record('local_cv_versions', $version);
-        
-        local_courseversion_log_action('auto_lock', $versionid, $course->id, 
-            'Automatically locked due to enrolments/attempts', 
-            ['enrolments' => $enrolcount, 'attempts' => $attemptcount]);
+
+        local_courseversion_log_action(
+            'auto_lock',
+            $versionid,
+            $course->id,
+            'Automatically locked due to enrolments/attempts',
+            ['enrolments' => $enrolcount, 'attempts' => $attemptcount]
+        );
     }
-    
+
     return $state;
 }
 
@@ -1110,10 +1117,10 @@ function local_courseversion_sync_assessment_state($versionid) {
  */
 function local_courseversion_create_version_from($baseversionid, $newversionnumber) {
     global $DB, $USER;
-    
+
     $base = $DB->get_record('local_cv_versions', ['id' => $baseversionid], '*', MUST_EXIST);
     $now = time();
-    
+
     $newversion = new stdClass();
     $newversion->courseid = $base->courseid;
     $newversion->version_number = $newversionnumber;
@@ -1131,9 +1138,9 @@ function local_courseversion_create_version_from($baseversionid, $newversionnumb
     $newversion->createdby = $USER->id;
     $newversion->timecreated = $now;
     $newversion->timemodified = $now;
-    
+
     $newid = $DB->insert_record('local_cv_versions', $newversion);
-    
+
     // Create empty assessment state
     $state = new stdClass();
     $state->versionid = $newid;
@@ -1146,12 +1153,16 @@ function local_courseversion_create_version_from($baseversionid, $newversionnumb
     $state->timecreated = $now;
     $state->timemodified = $now;
     $DB->insert_record('local_cv_assessment_state', $state);
-    
+
     $course = $DB->get_record('local_cv_courses', ['id' => $base->courseid]);
-    local_courseversion_log_action('create', $newid, $base->courseid, 
+    local_courseversion_log_action(
+        'create',
+        $newid,
+        $base->courseid,
         "Created from version {$base->version_number}",
-        ['base_version' => $base->version_number, 'new_version' => $newversionnumber]);
-    
+        ['base_version' => $base->version_number, 'new_version' => $newversionnumber]
+    );
+
     return $newid;
 }
 
@@ -1160,16 +1171,16 @@ function local_courseversion_create_version_from($baseversionid, $newversionnumb
  */
 function local_courseversion_release_version($versionid) {
     global $DB, $USER;
-    
+
     $version = $DB->get_record('local_cv_versions', ['id' => $versionid], '*', MUST_EXIST);
     $now = time();
-    
+
     // Supersede current active version
     $DB->execute(
         "UPDATE {local_cv_versions} SET status = 'superseded', timemodified = ? WHERE courseid = ? AND status = 'active'",
         [$now, $version->courseid]
     );
-    
+
     // Release this version
     $version->status = 'active';
     $version->locked = 1;
@@ -1178,11 +1189,15 @@ function local_courseversion_release_version($versionid) {
     $version->releasedat = $now;
     $version->timemodified = $now;
     $DB->update_record('local_cv_versions', $version);
-    
-    local_courseversion_log_action('release', $versionid, $version->courseid, 
+
+    local_courseversion_log_action(
+        'release',
+        $versionid,
+        $version->courseid,
         "Released version {$version->version_number}",
-        ['change_summary' => $version->change_summary]);
-    
+        ['change_summary' => $version->change_summary]
+    );
+
     return true;
 }
 
@@ -1191,18 +1206,18 @@ function local_courseversion_release_version($versionid) {
  */
 function local_courseversion_archive_version($versionid, $reason = '') {
     global $DB, $USER;
-    
+
     $version = $DB->get_record('local_cv_versions', ['id' => $versionid], '*', MUST_EXIST);
     $now = time();
-    
+
     $version->status = 'archived';
     $version->locked = 1;
     $version->lock_reason = 'Archived - permanently locked';
     $version->timemodified = $now;
     $DB->update_record('local_cv_versions', $version);
-    
+
     local_courseversion_log_action('archive', $versionid, $version->courseid, $reason);
-    
+
     return true;
 }
 
@@ -1211,16 +1226,16 @@ function local_courseversion_archive_version($versionid, $reason = '') {
  */
 function local_courseversion_override_lock($versionid, $reason) {
     global $DB, $USER;
-    
+
     $version = $DB->get_record('local_cv_versions', ['id' => $versionid], '*', MUST_EXIST);
     $now = time();
-    
+
     $version->locked = 0;
     $version->lock_reason = null;
     $version->timemodified = $now;
     $DB->update_record('local_cv_versions', $version);
-    
+
     local_courseversion_log_action('override', $versionid, $version->courseid, $reason);
-    
+
     return true;
 }

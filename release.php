@@ -51,14 +51,20 @@ if ($version->status !== 'draft') {
 }
 
 if (empty($version->change_summary)) {
-    redirect(new moodle_url('/local/courseversion/edit_version.php', ['id' => $id]),
-        get_string('changesummaryrequired', 'local_courseversion'), null, \core\output\notification::NOTIFY_ERROR);
+    redirect(
+        new moodle_url('/local/courseversion/edit_version.php', ['id' => $id]),
+        get_string('changesummaryrequired', 'local_courseversion'),
+        null,
+        \core\output\notification::NOTIFY_ERROR
+    );
 }
 
 if ($confirm && confirm_sesskey()) {
     local_courseversion_release_version($id);
-    redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $version->courseid]),
-        get_string('versionreleased', 'local_courseversion', $version->version_number));
+    redirect(
+        new moodle_url('/local/courseversion/versions.php', ['id' => $version->courseid]),
+        get_string('versionreleased', 'local_courseversion', $version->version_number)
+    );
 }
 
 echo $OUTPUT->header();
@@ -79,7 +85,7 @@ echo $OUTPUT->header();
             </div>
             <div>
                 <h1><?php echo get_string('confirmrelease', 'local_courseversion'); ?></h1>
-                <p><?php echo s($course->course_code); ?> v<?php echo s($version->version_number); ?></p>
+                <p><?php echo s($course->course_code) . ' v' . s($version->version_number); ?></p>
             </div>
         </div>
     </div>

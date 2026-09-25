@@ -112,9 +112,9 @@ echo $OUTPUT->header();
     </div>
 
     <div class="cv-tabs">
-        <a href="<?php echo new moodle_url('/local/courseversion/index.php'); ?>" class="cv-tab active"><?php echo get_string('dashboard', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/courses.php'); ?>" class="cv-tab"><?php echo get_string('managecourses', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/audit.php'); ?>" class="cv-tab"><?php echo get_string('auditlog', 'local_courseversion'); ?></a>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/index.php'), get_string('dashboard', 'local_courseversion'), ['class' => 'cv-tab active']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/courses.php'), get_string('managecourses', 'local_courseversion'), ['class' => 'cv-tab']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/audit.php'), get_string('auditlog', 'local_courseversion'), ['class' => 'cv-tab']); ?>
     </div>
 
     <?php if ($asqaenabled): ?>
@@ -163,7 +163,7 @@ echo $OUTPUT->header();
             </svg>
             <h3>No courses yet</h3>
             <p>Get started by adding your first course</p>
-            <a href="<?php echo new moodle_url('/local/courseversion/edit_course.php'); ?>" class="cv-btn cv-btn-primary"><?php echo get_string('addcourse', 'local_courseversion'); ?></a>
+            <?php echo html_writer::link(new moodle_url('/local/courseversion/edit_course.php'), get_string('addcourse', 'local_courseversion'), ['class' => 'cv-btn cv-btn-primary']); ?>
         </div>
         <?php else: ?>
         <div class="cv-table-container">
@@ -193,15 +193,15 @@ echo $OUTPUT->header();
                             <?php if ($course->version_locked): ?>
                                 <span class="cv-badge cv-badge-locked">Locked</span>
                             <?php elseif ($course->version_status): ?>
-                                <span class="cv-badge cv-badge-<?php echo $course->version_status; ?>"><?php echo ucfirst($course->version_status); ?></span>
+                                <?php echo html_writer::span(s(ucfirst($course->version_status)), 'cv-badge cv-badge-' . s($course->version_status)); ?>
                             <?php else: ?>
                                 <span class="cv-badge cv-badge-draft">No Version</span>
                             <?php endif; ?>
                         </td>
                         <td>
                             <div class="cv-actions-bar">
-                                <a href="<?php echo new moodle_url('/local/courseversion/versions.php', ['id' => $course->id]); ?>" class="cv-btn cv-btn-secondary cv-btn-sm"><?php echo get_string('viewtimeline', 'local_courseversion'); ?></a>
-                                <a href="<?php echo new moodle_url('/local/courseversion/edit_course.php', ['id' => $course->id]); ?>" class="cv-btn cv-btn-secondary cv-btn-sm"><?php echo get_string('editcourse', 'local_courseversion'); ?></a>
+                                <?php echo html_writer::link(new moodle_url('/local/courseversion/versions.php', ['id' => $course->id]), get_string('viewtimeline', 'local_courseversion'), ['class' => 'cv-btn cv-btn-secondary cv-btn-sm']); ?>
+                                <?php echo html_writer::link(new moodle_url('/local/courseversion/edit_course.php', ['id' => $course->id]), get_string('editcourse', 'local_courseversion'), ['class' => 'cv-btn cv-btn-secondary cv-btn-sm']); ?>
                             </div>
                         </td>
                     </tr>

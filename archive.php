@@ -76,8 +76,10 @@ if ($form->is_cancelled()) {
 
 if ($data = $form->get_data()) {
     local_courseversion_archive_version($id, $data->reason);
-    redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $version->courseid]),
-        get_string('versionarchived', 'local_courseversion', $version->version_number));
+    redirect(
+        new moodle_url('/local/courseversion/versions.php', ['id' => $version->courseid]),
+        get_string('versionarchived', 'local_courseversion', $version->version_number)
+    );
 }
 
 echo $OUTPUT->header();
@@ -98,7 +100,7 @@ echo $OUTPUT->header();
             </div>
             <div>
                 <h1><?php echo get_string('confirmarchive', 'local_courseversion'); ?></h1>
-                <p><?php echo s($course->course_code); ?> v<?php echo s($version->version_number); ?></p>
+                <p><?php echo s($course->course_code) . ' v' . s($version->version_number); ?></p>
             </div>
         </div>
     </div>

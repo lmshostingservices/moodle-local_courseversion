@@ -39,19 +39,23 @@ class observer {
      */
     public static function course_updated(\core\event\course_updated $event) {
         global $DB;
-        
+
         $courseid = $event->courseid;
-        
+
         // Check if this course is linked to a locked version
         $locked = self::is_course_locked($courseid);
-        
+
         if ($locked) {
             // Log the attempted edit
             $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $courseid]);
             if ($cvcourse) {
                 require_once(__DIR__ . '/../lib.php');
-                local_courseversion_log_action('blocked_edit', null, $cvcourse->id, 
-                    'Attempted course settings edit while locked');
+                local_courseversion_log_action(
+                    'blocked_edit',
+                    null,
+                    $cvcourse->id,
+                    'Attempted course settings edit while locked'
+                );
             }
         }
     }
@@ -63,15 +67,19 @@ class observer {
      */
     public static function course_module_updated(\core\event\course_module_updated $event) {
         global $DB;
-        
+
         $courseid = $event->courseid;
-        
+
         if (self::is_course_locked($courseid)) {
             $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $courseid]);
             if ($cvcourse) {
                 require_once(__DIR__ . '/../lib.php');
-                local_courseversion_log_action('blocked_edit', null, $cvcourse->id, 
-                    'Attempted activity edit while locked');
+                local_courseversion_log_action(
+                    'blocked_edit',
+                    null,
+                    $cvcourse->id,
+                    'Attempted activity edit while locked'
+                );
             }
         }
     }
@@ -83,15 +91,19 @@ class observer {
      */
     public static function course_module_created(\core\event\course_module_created $event) {
         global $DB;
-        
+
         $courseid = $event->courseid;
-        
+
         if (self::is_course_locked($courseid)) {
             $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $courseid]);
             if ($cvcourse) {
                 require_once(__DIR__ . '/../lib.php');
-                local_courseversion_log_action('blocked_edit', null, $cvcourse->id, 
-                    'Attempted activity creation while locked');
+                local_courseversion_log_action(
+                    'blocked_edit',
+                    null,
+                    $cvcourse->id,
+                    'Attempted activity creation while locked'
+                );
             }
         }
     }
@@ -103,15 +115,19 @@ class observer {
      */
     public static function course_module_deleted(\core\event\course_module_deleted $event) {
         global $DB;
-        
+
         $courseid = $event->courseid;
-        
+
         if (self::is_course_locked($courseid)) {
             $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $courseid]);
             if ($cvcourse) {
                 require_once(__DIR__ . '/../lib.php');
-                local_courseversion_log_action('blocked_edit', null, $cvcourse->id, 
-                    'Attempted activity deletion while locked');
+                local_courseversion_log_action(
+                    'blocked_edit',
+                    null,
+                    $cvcourse->id,
+                    'Attempted activity deletion while locked'
+                );
             }
         }
     }
@@ -124,20 +140,20 @@ class observer {
      */
     public static function is_course_locked($moodlecourseid) {
         global $DB;
-        
+
         // Find the course version control entry
         $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $moodlecourseid]);
         if (!$cvcourse) {
             return false;
         }
-        
+
         // Check if active version is locked
         $activeversion = $DB->get_record('local_cv_versions', [
             'courseid' => $cvcourse->id,
             'status' => 'active',
             'locked' => 1
         ]);
-        
+
         return !empty($activeversion);
     }
 
@@ -149,22 +165,22 @@ class observer {
      */
     public static function get_lock_info($moodlecourseid) {
         global $DB;
-        
+
         $cvcourse = $DB->get_record('local_cv_courses', ['moodle_course_id' => $moodlecourseid]);
         if (!$cvcourse) {
             return false;
         }
-        
+
         $activeversion = $DB->get_record('local_cv_versions', [
             'courseid' => $cvcourse->id,
             'status' => 'active',
             'locked' => 1
         ]);
-        
+
         if (!$activeversion) {
             return false;
         }
-        
+
         return (object)[
             'version' => $activeversion->version_number,
             'reason' => $activeversion->lock_reason,

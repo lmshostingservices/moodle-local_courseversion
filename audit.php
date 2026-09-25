@@ -85,7 +85,7 @@ if ($export === 'csv' && has_capability('local/courseversion:exportaudit', $cont
 
     $out = fopen('php://output', 'w');
     fputcsv($out, ['Date/Time', 'Action', 'Course Code', 'Course Name', 'Version', 'User', 'Email', 'Reason', 'IP Address']);
-    
+
     foreach ($allrecords as $row) {
         fputcsv($out, [
             userdate($row->timecreated, '%Y-%m-%d %H:%M:%S'),
@@ -133,9 +133,9 @@ echo $OUTPUT->header();
     </div>
 
     <div class="cv-tabs">
-        <a href="<?php echo new moodle_url('/local/courseversion/index.php'); ?>" class="cv-tab"><?php echo get_string('dashboard', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/courses.php'); ?>" class="cv-tab"><?php echo get_string('managecourses', 'local_courseversion'); ?></a>
-        <a href="<?php echo new moodle_url('/local/courseversion/audit.php'); ?>" class="cv-tab active"><?php echo get_string('auditlog', 'local_courseversion'); ?></a>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/index.php'), get_string('dashboard', 'local_courseversion'), ['class' => 'cv-tab']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/courses.php'), get_string('managecourses', 'local_courseversion'), ['class' => 'cv-tab']); ?>
+        <?php echo html_writer::link(new moodle_url('/local/courseversion/audit.php'), get_string('auditlog', 'local_courseversion'), ['class' => 'cv-tab active']); ?>
     </div>
 
     <?php if ($asqaenabled): ?>
@@ -144,7 +144,7 @@ echo $OUTPUT->header();
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             <?php echo get_string('asqa_header', 'local_courseversion'); ?>
         </div>
-        <p><?php echo get_string('asqa_audit_trail', 'local_courseversion'); ?> <?php echo get_string('asqa_archive_retention', 'local_courseversion'); ?></p>
+        <p><?php echo get_string('asqa_audit_trail', 'local_courseversion') . ' ' . get_string('asqa_archive_retention', 'local_courseversion'); ?></p>
     </div>
     <?php endif; ?>
 
@@ -156,7 +156,7 @@ echo $OUTPUT->header();
                 <select name="courseid" class="cv-form-select" style="width: auto;" onchange="this.form.submit()">
                     <option value="0">All Courses</option>
                     <?php foreach ($courses as $c): ?>
-                    <option value="<?php echo $c->id; ?>" <?php echo $courseid == $c->id ? 'selected' : ''; ?>>
+                    <option value="<?php echo $c->id . '"' . ($courseid == $c->id ? ' selected' : ''); ?>>
                         <?php echo s($c->course_code . ' - ' . $c->course_name); ?>
                     </option>
                     <?php endforeach; ?>
@@ -200,11 +200,11 @@ echo $OUTPUT->header();
                         <td style="white-space: nowrap;"><?php echo userdate($log->timecreated, get_string('strftimedatetime', 'langconfig')); ?></td>
                         <td>
                             <span class="cv-badge cv-badge-<?php echo ($log->action === 'release' || $log->action === 'create') ? 'active' : (($log->action === 'override') ? 'locked' : 'draft'); ?>">
-                                <?php 
+                                <?php
                                     $actionkey = 'action_' . $log->action;
-                                    echo get_string_manager()->string_exists($actionkey, 'local_courseversion') 
-                                        ? get_string($actionkey, 'local_courseversion') 
-                                        : ucfirst($log->action); 
+                                    echo get_string_manager()->string_exists($actionkey, 'local_courseversion')
+                                        ? get_string($actionkey, 'local_courseversion')
+                                        : ucfirst($log->action);
                                 ?>
                             </span>
                         </td>

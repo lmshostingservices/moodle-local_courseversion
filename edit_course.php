@@ -129,8 +129,10 @@ if ($data = $form->get_data()) {
 
         local_courseversion_log_action('edit', null, $id, 'Course updated');
 
-        redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $id]),
-            get_string('courseupdated', 'local_courseversion'));
+        redirect(
+            new moodle_url('/local/courseversion/versions.php', ['id' => $id]),
+            get_string('courseupdated', 'local_courseversion')
+        );
     } else {
         $record = new stdClass();
         $record->course_code = $data->course_code;
@@ -146,8 +148,10 @@ if ($data = $form->get_data()) {
 
         local_courseversion_log_action('create', null, $newid, 'Course created');
 
-        redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $newid]),
-            get_string('coursecreated', 'local_courseversion'));
+        redirect(
+            new moodle_url('/local/courseversion/versions.php', ['id' => $newid]),
+            get_string('coursecreated', 'local_courseversion')
+        );
     }
 }
 

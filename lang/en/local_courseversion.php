@@ -75,7 +75,7 @@ $string['status'] = 'Status';
 $string['status_help'] = 'Draft: Being developed. Active: Currently in use. Superseded: Replaced by newer version. Archived: Permanently stored.';
 $string['changesummary'] = 'Change Summary';
 $string['changesummary_help'] = 'Document what changed in this version. Required for release and compliance audits.';
-$string['tasversion'] = 'TAS Document Version';
+$string['tasversion'] = 'TAS document version';
 $string['tasversion_help'] = 'The Training and Assessment Strategy document version that applies to this course version.';
 $string['validationdate'] = 'Last Validation Date';
 $string['validationdate_help'] = 'Date when this version was last validated for quality and compliance.';
@@ -174,3 +174,14 @@ $string['action_auto_lock'] = 'Auto-Locked';
 
 // Unlock verification
 $string['unlock_required'] = 'This plugin requires 1000 credits to unlock. Please visit lms-labs.com to purchase credits.';
+
+// Privacy API.
+$string['privacy:metadata:audit_log'] = 'An audit trail of course version control actions (create, release, archive, lock override, blocked edits).';
+$string['privacy:metadata:audit_log:action'] = 'The action performed.';
+$string['privacy:metadata:audit_log:ipaddress'] = 'The IP address the action was performed from.';
+$string['privacy:metadata:audit_log:reason'] = 'The reason entered for the action.';
+$string['privacy:metadata:audit_log:timecreated'] = 'The time the action was performed.';
+$string['privacy:metadata:audit_log:userid'] = 'The ID of the user who performed the action.';
+$string['privacy:metadata:lms_labs_unlock'] = 'To verify the plugin licence, the site sends its LMS Labs Site ID and API key to lms-labs.com. No user data is sent.';
+$string['privacy:metadata:lms_labs_unlock:siteid'] = 'The LMS Labs Site ID configured for this Moodle site.';
+$string['privacy:path:auditlog'] = 'Course version control audit log';

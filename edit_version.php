@@ -171,8 +171,10 @@ if ($data = $form->get_data()) {
 
         local_courseversion_log_action('edit', $id, $courseid, 'Version updated');
 
-        redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $courseid]),
-            get_string('versionupdated', 'local_courseversion'));
+        redirect(
+            new moodle_url('/local/courseversion/versions.php', ['id' => $courseid]),
+            get_string('versionupdated', 'local_courseversion')
+        );
     } else {
         $record = new stdClass();
         $record->courseid = $courseid;
@@ -209,8 +211,10 @@ if ($data = $form->get_data()) {
 
         local_courseversion_log_action('create', $newid, $courseid, 'Version created');
 
-        redirect(new moodle_url('/local/courseversion/versions.php', ['id' => $courseid]),
-            get_string('versioncreated', 'local_courseversion', $data->version_number));
+        redirect(
+            new moodle_url('/local/courseversion/versions.php', ['id' => $courseid]),
+            get_string('versioncreated', 'local_courseversion', $data->version_number)
+        );
     }
 }
 
@@ -247,7 +251,7 @@ echo $OUTPUT->header();
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             <?php echo get_string('asqa_header', 'local_courseversion'); ?>
         </div>
-        <p><?php echo get_string('asqa_change_summary', 'local_courseversion'); ?> <?php echo get_string('asqa_tas_link', 'local_courseversion'); ?></p>
+        <p><?php echo get_string('asqa_change_summary', 'local_courseversion') . ' ' . get_string('asqa_tas_link', 'local_courseversion'); ?></p>
     </div>
     <?php endif; ?>
 

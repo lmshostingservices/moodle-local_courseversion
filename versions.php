@@ -169,7 +169,7 @@ echo $OUTPUT->header();
                         
                         <?php if ($v->enrolment_count || $v->attempt_count): ?>
                         <span style="margin-left: 16px; color: var(--cv-gray-500);">
-                            <?php echo $v->enrolment_count; ?> enrolments • <?php echo $v->attempt_count; ?> attempts
+                            <?php echo (int)$v->enrolment_count . ' enrolments • ' . (int)$v->attempt_count . ' attempts'; ?>
                         </span>
                         <?php endif; ?>
                     </div>

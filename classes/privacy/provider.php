@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy provider for local_courseversion.
- *
- * @package   local_courseversion
- * @copyright 2025 Essay Grader AI
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 namespace local_courseversion\privacy;
 
@@ -28,14 +21,36 @@ use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
+use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Privacy provider for local_courseversion.
+ *
+ * The plugin stores personal data only in the audit log (local_cv_audit_log),
+ * which records the user who performed each version-control action. Entries are
+ * held at system context.
+ *
+ * Audit log entries are retained on deletion requests. The log is the evidence
+ * trail for course-change compliance (Standards for RTOs 2025), so deleting or
+ * altering entries would destroy records the organisation is required to keep.
+ *
+ * @package   local_courseversion
+ * @copyright 2025 Essay Grader AI
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
+
+    /**
+     * Describe the personal data stored by this plugin.
+     *
+     * @param collection $collection
+     * @return collection
+     */
     public static function get_metadata(collection $collection): collection {
         $collection->add_database_table(
             'local_cv_audit_log',
@@ -48,32 +63,103 @@ class provider implements
             ],
             'privacy:metadata:audit_log'
         );
+        $collection->add_external_location_link(
+            'lms_labs_unlock',
+            [
+                'siteid' => 'privacy:metadata:lms_labs_unlock:siteid',
+            ],
+            'privacy:metadata:lms_labs_unlock'
+        );
         return $collection;
     }
 
+    /**
+     * Get the contexts holding data for a user.
+     *
+     * @param int $userid
+     * @return contextlist
+     */
     public static function get_contexts_for_userid(int $userid): contextlist {
+        global $DB;
         $contextlist = new contextlist();
-        $contextlist->add_system_context();
+        if ($DB->record_exists('local_cv_audit_log', ['userid' => $userid])) {
+            $contextlist->add_system_context();
+        }
         return $contextlist;
     }
 
+    /**
+     * Get the users with data in a context.
+     *
+     * @param userlist $userlist
+     */
     public static function get_users_in_context(userlist $userlist) {
-        // Users in system context who have audit log entries
+        if ($userlist->get_context()->contextlevel != CONTEXT_SYSTEM) {
+            return;
+        }
+        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_cv_audit_log}', []);
     }
 
+    /**
+     * Export the user's audit log entries.
+     *
+     * @param approved_contextlist $contextlist
+     */
     public static function export_user_data(approved_contextlist $contextlist) {
-        // Export audit log entries for the user
+        global $DB;
+
+        $userid = $contextlist->get_user()->id;
+        foreach ($contextlist->get_contexts() as $context) {
+            if ($context->contextlevel != CONTEXT_SYSTEM) {
+                continue;
+            }
+            $records = $DB->get_records('local_cv_audit_log', ['userid' => $userid], 'timecreated ASC');
+            if (!$records) {
+                continue;
+            }
+            $entries = [];
+            foreach ($records as $record) {
+                $entries[] = (object) [
+                    'action' => $record->action,
+                    'versionid' => $record->versionid,
+                    'courseid' => $record->courseid,
+                    'reason' => $record->reason,
+                    'details' => $record->details,
+                    'ipaddress' => $record->ipaddress,
+                    'timecreated' => transform::datetime($record->timecreated),
+                ];
+            }
+            writer::with_context($context)->export_data(
+                [get_string('privacy:path:auditlog', 'local_courseversion')],
+                (object) ['entries' => $entries]
+            );
+        }
     }
 
+    /**
+     * Audit log entries are retained for compliance; nothing is deleted.
+     *
+     * @param \context $context
+     */
     public static function delete_data_for_all_users_in_context(\context $context) {
-        // Audit logs should not be deleted for compliance
+        // Intentionally empty: see class docblock.
     }
 
+    /**
+     * Audit log entries are retained for compliance; nothing is deleted.
+     *
+     * @param approved_contextlist $contextlist
+     */
     public static function delete_data_for_user(approved_contextlist $contextlist) {
-        // Audit logs should not be deleted for compliance
+        // Intentionally empty: see class docblock.
     }
 
+    /**
+     * Audit log entries are retained for compliance; nothing is deleted.
+     *
+     * @param approved_userlist $userlist
+     */
     public static function delete_data_for_users(approved_userlist $userlist) {
-        // Audit logs should not be deleted for compliance
+        // Intentionally empty: see class docblock.
     }
 }
