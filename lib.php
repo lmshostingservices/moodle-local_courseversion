@@ -432,19 +432,26 @@ function local_courseversion_get_course_id_from_request($script) {
     } else if (!empty(optional_param('show', 0, PARAM_INT))) {
         $cmid = (int)optional_param('show', 0, PARAM_INT);
     } else if ((($reqid = optional_param('id', 0, PARAM_INT)) > 0) && strpos($script, '/course/mod.php') !== false) {
-        // === BUG-CV-ADD-RESOURCE-CROSS-COURSE FIX (v1.5.3) ===
-        // When 'add' is set in mod.php (teacher adding a NEW module via the activity
-        // chooser), the 'id' parameter is NOT a course-module ID — it is a section
-        // reference, beforemod pointer, or other non-cmid value. Treating it as a
-        // cmid causes a DB lookup that can coincidentally match a CM from a DIFFERENT
-        // course (e.g. Course 2, which is locked). The resolver then returns Course 2's
-        // Moodle ID, the lock check fires, and the teacher is incorrectly redirected to
-        // Course 2's view page even though they are working in Course 1 (unlocked).
-        // Fix: only resolve 'id' as a cmid when 'add' is NOT set — i.e. for edit/move
-        // operations on EXISTING modules, where 'id' genuinely is a cmid.
-        if (empty(optional_param('add', 0, PARAM_INT))) {
-            $cmid = $reqid;
+        // === BUG-CV-ADD-RESOURCE-CROSS-COURSE FIX (v1.5.11) ===
+        // In course/mod.php the 'id' parameter has TWO meanings:
+        //   - When 'add' is present, 'id' is the COURSE id. Moodle core reads it as
+        //     $id = required_param('id', PARAM_INT) and passes it straight through as
+        //     'course' => $id when redirecting to modedit.php.
+        //   - When 'add' is absent, 'id' is a course-module id (update/move/delete).
+        //
+        // v1.5.3 attempted this distinction but tested 'add' with PARAM_INT. The value
+        // is a module name such as 'resource' or 'assign', so PARAM_INT reduced it to 0
+        // and empty() was always true — the guard never closed. 'id' was then resolved
+        // as a cmid, matching an unrelated module in a DIFFERENT course, and the lock
+        // check fired against that course. Teachers adding an activity in an unlocked
+        // course were redirected to whichever course that coincidental cmid belonged to.
+        //
+        // Fix: read 'add' as text, and on the add path return 'id' as the course id so
+        // the lock check still runs — against the correct course.
+        if (optional_param('add', '', PARAM_ALPHANUMEXT) !== '') {
+            return $reqid;
         }
+        $cmid = $reqid;
     }
     
     if ($cmid) {

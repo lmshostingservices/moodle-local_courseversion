@@ -2,6 +2,87 @@
 
 All notable changes to this plugin will be documented in this file.
 
+## [1.5.13] - 2026-09-25
+
+### Fixed (BUG-CV-HOOK-LIB-NOT-LOADED)
+
+`Exception - Call to undefined function local_courseversion\hook\local_courseversion_check_and_block_edit()`
+
+The hook callback classes (`classes/hook/after_config.php`,
+`classes/hook/before_http_headers.php`) called `local_courseversion_check_and_block_edit()`,
+which lives in `lib.php`, without loading `lib.php`. The hook manager never
+includes a plugin's `lib.php`. It normally got loaded only as a side effect of
+core's legacy-callback scan (`get_plugins_with_function()`) that runs just before
+the hook is dispatched. That scan returns early when `$CFG->upgraderunning` is set
+or during initial install, but hooks are still dispatched then. So during a
+plugin or core upgrade, `lib.php` was never loaded and the callback fatalled.
+
+**Fix:** both callbacks now:
+- return immediately during install/upgrade (as core does for legacy callbacks);
+- `require_once` the plugin's `lib.php` and call the function fully qualified.
+
+### Changed
+
+- `README.md` rewritten: requirements, installation, configuration, capabilities,
+  external service disclosure, privacy and support.
+- 1.5.12 was not released; its package was superseded before promotion.
+
+### Known issue (not changed in this release)
+
+`local_courseversion_before_standard_top_of_body_html_generation()` in `lib.php`
+has never been called by Moodle on any version. The legacy callback name is
+`before_standard_top_of_body_html` (no `_generation`), and no hook is registered
+for it. The locked-course UI injection it contains is dormant code.
+
+## [1.5.11] - 2026-08-21
+
+### Fixed (BUG-CV-ADD-RESOURCE-CROSS-COURSE — recurrence of KB-003)
+
+The v1.5.3 fix for this issue never executed. It guarded on
+`empty(optional_param('add', 0, PARAM_INT))`, but `add` carries a module name
+(`resource`, `assign`, `quiz`, `label`). `PARAM_INT` is a PHP `(int)` cast, which
+reads leading digits only, so every module name became `0`, `empty()` was always
+true, and the guard never closed.
+
+`local_courseversion_get_course_id_from_request()` therefore resolved `id` as a
+course-module id on every `/course/mod.php` request. Because `id` is in fact the
+**course** id when `add` is set, the lookup matched an unrelated module in a
+different course and the lock check ran against that course. A teacher adding an
+activity in an unlocked course was redirected to whichever course the
+coincidental cmid belonged to.
+
+Observed on wombatlms.com.au (Moodle 5.0.1), confirmed server-side as HTTP 303
+with `Location: /course/view.php?id=4044`:
+
+| Editing (unlocked) | `id` read as cmid | Module lives in | Redirected to |
+|---|---|---|---|
+| BSBOPS504 (3258) | 3258 | HLTWHS005 (4044, locked) | HLTWHS005 |
+| BSBSUS211 (2261) | 2261 | CHCCCS040 (3092, locked) | CHCCCS040 |
+
+**Fix:** read `add` with `PARAM_ALPHANUMEXT`, and on the add path return `id`
+directly as the course id. Locked courses are still blocked when a teacher tries
+to add an activity to them — now against the correct course. Merely skipping the
+cmid lookup would have left locked courses editable on the add path.
+
+### Changed
+
+- `settings.php`: admin section parameter constrained from `PARAM_RAW` to
+  `PARAM_ALPHANUMEXT`.
+- `db/upgrade.php`: savepoints reduced to a single 10-digit baseline
+  (`2026072300`). The eight previous 13-digit savepoints were all opcache
+  invalidation with no schema change, so no upgrade history is lost.
+- Removed from the package: `BUILD_INFO.json` (internal build artefact),
+  `classes/hook/*.bak_20260811225813`, `version.php.13bak`.
+
+### Known issues, not addressed in this release
+
+- `local_courseversion_get_lock_info()` catches all exceptions and returns
+  `null`, which the caller reads as "not locked". A transient database error
+  silently permits a structural edit.
+- The override check uses `has_capability(..., null, false)`, disabling Moodle's
+  "do anything". A site administrator is therefore **not** granted the override
+  implicitly; the capability must be assigned explicitly.
+
 ## [1.5.3] - 2026-04-10
 
 ### Fixed (BUG-CV-ADD-RESOURCE-CROSS-COURSE)

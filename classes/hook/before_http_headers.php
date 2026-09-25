@@ -31,7 +31,15 @@ class before_http_headers {
      * @param \core\hook\output\before_http_headers $hook
      */
     public static function callback(\core\hook\output\before_http_headers $hook): void {
-        // Use shared blocking logic from lib.php
-        local_courseversion_check_and_block_edit();
+        global $CFG;
+        // Match core: legacy lib.php callbacks are never run during install/upgrade,
+        // and our tables may not exist yet.
+        if (during_initial_install() || !empty($CFG->upgraderunning)) {
+            return;
+        }
+        // Hook callbacks are autoloaded classes. Moodle does not guarantee this
+        // plugin's lib.php is loaded before they run, so load it explicitly.
+        require_once(__DIR__ . '/../../lib.php');
+        \local_courseversion_check_and_block_edit();
     }
 }

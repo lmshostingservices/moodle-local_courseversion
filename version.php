@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_courseversion';
-$plugin->version   = 2026082100;
+$plugin->version   = 2026092501;
 $plugin->requires  = 2022041900;   // Moodle 4.0+
 $plugin->supported = [400, 500];   // Moodle 4.0 to 5.x supported
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.5.11'; // RELEASE-PIPELINE: Use a constrained admin-section parameter and ship a clean 10-digit-savepoint package.
+$plugin->release   = '1.5.13'; // Fixes BUG-CV-HOOK-LIB-NOT-LOADED: hook callbacks called lib.php functions before lib.php was included.
